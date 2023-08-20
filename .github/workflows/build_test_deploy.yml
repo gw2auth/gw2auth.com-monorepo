@@ -69,10 +69,10 @@ jobs:
           GOOS: 'linux'
           GOARCH: 'amd64' # keep this in sync with the arch configured in CDK!
           CGO_ENABLED: '0'
-        run: 'go build -o gw2auth_api -tags "lambda,lambda.norpc,lambdahttpadapter.partial,lambdahttpadapter.echo,lambdahttpadapter.functionurl"'
+        run: 'go build -o bootstrap -tags "lambda,lambda.norpc,lambdahttpadapter.partial,lambdahttpadapter.echo,lambdahttpadapter.functionurl"'
       - name: 'Prepare lambda bundle'
         working-directory: 'gw2auth.com-api'
-        run: '(chmod +x gw2auth_api && zip -q ${{ env.WORKSPACE_ARTIFACT_API }}.zip gw2auth_api && rm gw2auth_api)'
+        run: '(chmod +x bootstrap && zip -q ${{ env.WORKSPACE_ARTIFACT_API }}.zip bootstrap && rm bootstrap)'
       - name: 'Store API artifact'
         uses: actions/upload-artifact@v3
         with:
