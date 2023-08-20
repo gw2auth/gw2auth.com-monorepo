@@ -185,10 +185,10 @@ jobs:
           aws-region: ${{ secrets.AWS_CDK_REGION }}
       - name: 'Deploy beta'
         if: github.ref == 'refs/heads/beta'
-        run: 'cdk --app ./cdk.out deploy --require-approval never "*-Beta"'
+        run: 'cdk --app ./cdk.out deploy --require-approval never "*-Beta" --parameters "Gw2AuthApi-Beta:grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}"'
       - name: 'Deploy prod'
         if: github.ref == 'refs/heads/main'
-        run: 'cdk --app ./cdk.out deploy --require-approval never "*-Prod"'
+        run: 'cdk --app ./cdk.out deploy --require-approval never "*-Prod" --parameters "Gw2AuthApi-Prod:grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}"'
 
   create_pull_request:
     name: 'Create PR'
