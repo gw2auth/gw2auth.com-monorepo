@@ -7,3 +7,6 @@
 [submodule "gw2auth.com-api"]
 	path = gw2auth.com-api
 	url = git@github.com:gw2auth/gw2auth.com-api.git
+[submodule "opentelemetry-lambda"]
+	path = opentelemetry-lambda
+	url = git@github.com:open-telemetry/opentelemetry-lambda.git
