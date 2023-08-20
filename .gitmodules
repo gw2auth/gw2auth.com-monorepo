@@ -1,0 +1,9 @@
+[submodule "gw2auth.com-ui"]
+	path = gw2auth.com-ui
+	url = git@github.com:gw2auth/gw2auth.com-ui.git
+[submodule "gw2auth.com-cdk"]
+	path = gw2auth.com-cdk
+	url = git@github.com:gw2auth/gw2auth.com-cdk.git
+[submodule "gw2auth.com-api"]
+	path = gw2auth.com-api
+	url = git@github.com:gw2auth/gw2auth.com-api.git
