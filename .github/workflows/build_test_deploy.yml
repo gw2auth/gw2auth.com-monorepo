@@ -60,17 +60,11 @@ jobs:
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
-      - name: 'Setup go ${{ env.GO_VERSION_API }}'
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION_API }}
       - name: 'Build API'
-        working-directory: 'gw2auth.com-api'
-        env:
-          GOOS: 'linux'
-          GOARCH: 'amd64' # keep this in sync with the arch configured in CDK!
-          CGO_ENABLED: '0'
-        run: 'go build -o bootstrap -tags "lambda,lambda.norpc,lambdahttpadapter.partial,lambdahttpadapter.echo,lambdahttpadapter.functionurl"'
+        uses: './gw2auth.com-api/.github/actions/build_and_test'
+        with:
+          working-directory: 'gw2auth.com-api'
+          output: 'bootstrap'
       - name: 'Prepare lambda bundle'
         working-directory: 'gw2auth.com-api'
         run: '(chmod +x bootstrap && zip -q ${{ env.WORKSPACE_ARTIFACT_API }}.zip bootstrap && rm bootstrap)'
