@@ -17,6 +17,8 @@ jobs:
           github-token: ${{ secrets.token }}
           script: |
             const { owner, repo } = context.repo;
+            const branch = context.ref.replace('refs/heads/', '');
+            
             await github.rest.actions.createWorkflowDispatch({
               owner: owner,
               repo: 'gw2auth.com-monorepo',
@@ -25,5 +27,6 @@ jobs:
               inputs: {
                 submodule: repo,
                 submodule_ref: context.sha,
+                submodule_branch: branch,
               },
             });
