@@ -7,14 +7,15 @@ permissions:
 on:
   push:
     branches:
-      - main
-      - beta
+      - 'main'
+      - 'beta'
+      - 'feature/*'
 
 env:
   NODE_VERSION_UI: '18'
   NODE_VERSION_CDK: '18'
-  GO_VERSION_API: '^1.20.4'
-  GO_VERSION_OTEL_COLLECTOR: '^1.20.4'
+  GO_VERSION_API: '^1.21'
+  GO_VERSION_OTEL_COLLECTOR: '^1.21'
   WORKSPACE_ARTIFACT_UI: 'gw2auth_ui_artifact'
   WORKSPACE_ARTIFACT_API: 'gw2auth_api_artifact'
   WORKSPACE_ARTIFACT_OTEL_COLLECTOR: 'otel_collector_artifact'
@@ -26,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
@@ -55,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
@@ -85,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
@@ -125,7 +126,7 @@ jobs:
       - build_otel_collector
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
@@ -159,11 +160,11 @@ jobs:
 
   deploy:
     name: 'Deploy'
-    if: github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/')
     runs-on: ubuntu-latest
     environment:
-      name: ${{ (github.ref == 'refs/heads/beta' && 'beta') || (github.ref == 'refs/heads/main' && 'prod') || 'unknown' }}
-      url: ${{ (github.ref == 'refs/heads/beta' && 'https://beta.gw2auth.com') || (github.ref == 'refs/heads/main' && 'https://gw2auth.com') || 'unknown' }}
+      name: ${{ (github.ref == 'refs/heads/beta' && 'beta') || (github.ref == 'refs/heads/main' && 'prod') || 'feature' }}
+      url: ${{ (github.ref == 'refs/heads/beta' && 'https://beta.gw2auth.com') || (github.ref == 'refs/heads/main' && 'https://gw2auth.com') || 'https://feature.gw2auth.com' }}
     needs:
       - build_and_synth_cdk
     steps:
@@ -183,6 +184,9 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
           aws-region: ${{ secrets.AWS_CDK_REGION }}
+      - name: 'Deploy feature'
+        if: startsWith(github.ref, 'refs/heads/feature/')
+        run: 'cdk --app ./cdk.out deploy --require-approval never "GW2Auth-Feature" --parameters "grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}" --parameters "databaseURL=${{ secrets.DATABASE_URL }}"'
       - name: 'Deploy beta'
         if: github.ref == 'refs/heads/beta'
         run: 'cdk --app ./cdk.out deploy --require-approval never "GW2Auth-Beta" --parameters "grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}" --parameters "databaseURL=${{ secrets.DATABASE_URL }}"'
