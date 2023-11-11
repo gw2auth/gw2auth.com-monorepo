@@ -21,11 +21,15 @@ jobs:
         with:
           script: |
             const { repo, owner } = context.repo;
-            await github.rest.git.deleteRef({
-              owner: owner,
-              repo: repo,
-              ref: process.env.HEAD_REF,
-            });
+            try {
+              await github.rest.git.deleteRef({
+                owner: owner,
+                repo: repo,
+                ref: `heads/${process.env.HEAD_REF}`,
+              });
+            } catch (e) {
+              console.warn(e);
+            }
       - name: 'Delete PR other head branches'
         if: ${{ endsWith(github.head_ref, '/all') && github.event.pull_request.merged }}
         uses: actions/github-script@v6
@@ -42,9 +46,13 @@ jobs:
             });
             
             for (const pr of pulls.data) {
-              await github.rest.git.deleteRef({
-                owner: owner,
-                repo: repo,
-                ref: pr.head.ref,
-              });
+              try {
+                await github.rest.git.deleteRef({
+                  owner: owner,
+                  repo: repo,
+                  ref: `heads/${pr.head.ref}`,
+                });
+              } catch (e) {
+                console.warn(e);
+              }
             }
