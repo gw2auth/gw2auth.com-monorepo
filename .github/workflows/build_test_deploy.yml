@@ -143,31 +143,49 @@ jobs:
     needs:
       - build_and_synth_cdk
     steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.CDK_SSH_KEY }}
+          submodules: true
       - name: 'Download cdk synth artifact'
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.WORKSPACE_ARTIFACT_CDK }}
           path: .
-      - name: 'Setup node'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: 'Install cdk'
-        run: 'npm install -g aws-cdk'
-      - name: 'AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: 'Deploy feature'
+        if: startsWith(github.ref, 'refs/heads/feature/')
+        uses: './gw2auth.com-cdk/.github/actions/deploy'
         with:
           role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
           aws-region: ${{ secrets.AWS_CDK_REGION }}
-      - name: 'Deploy feature'
-        if: startsWith(github.ref, 'refs/heads/feature/')
-        run: 'cdk --app ./cdk.out deploy --require-approval never "GW2Auth-Feature" --parameters "grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}" --parameters "databaseURL=${{ secrets.DATABASE_URL }}"'
+          cdk-out-path: './cdk.out'
+          stack: 'GW2Auth-Feature'
+          grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
+          secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
+          secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
       - name: 'Deploy beta'
         if: github.ref == 'refs/heads/beta'
-        run: 'cdk --app ./cdk.out deploy --require-approval never "GW2Auth-Beta" --parameters "grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}" --parameters "databaseURL=${{ secrets.DATABASE_URL }}"'
+        uses: './gw2auth.com-cdk/.github/actions/deploy'
+        with:
+          role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
+          aws-region: ${{ secrets.AWS_CDK_REGION }}
+          cdk-out-path: './cdk.out'
+          stack: 'GW2Auth-Beta'
+          grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
+          secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
+          secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
       - name: 'Deploy prod'
         if: github.ref == 'refs/heads/main'
-        run: 'cdk --app ./cdk.out deploy --require-approval never "GW2Auth-Prod" --parameters "grafanaCloudAuth=${{ secrets.GRAFANA_CLOUD_AUTH }}" --parameters "databaseURL=${{ secrets.DATABASE_URL }}"'
+        uses: './gw2auth.com-cdk/.github/actions/deploy'
+        with:
+          role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
+          aws-region: ${{ secrets.AWS_CDK_REGION }}
+          cdk-out-path: './cdk.out'
+          stack: 'GW2Auth-Prod'
+          grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
+          secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
+          secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
 
   create_pull_request:
     name: 'Create PR'
