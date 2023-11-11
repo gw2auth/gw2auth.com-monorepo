@@ -1,0 +1,49 @@
+name: 'Delete PR branches'
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  delete_pr_branches:
+    name: 'Delete PR branches'
+    if: startsWith(github.head_ref, 'pr/')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: 'Delete PR head branch'
+        uses: actions/github-script@v6
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            await github.rest.git.deleteRef({
+              owner: owner,
+              repo: repo,
+              ref: process.env.HEAD_REF,
+            });
+      - name: 'Delete PR other head branches'
+        if: ${{ endsWith(github.head_ref, '/all') && github.event.pull_request.merged }}
+        uses: actions/github-script@v6
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const pulls = await github.rest.pulls.list({
+              owner: owner,
+              repo: repo,
+              base: process.env.BASE_REF,
+              state: 'open',
+            });
+            
+            for (const pr of pulls.data) {
+              await github.rest.git.deleteRef({
+                owner: owner,
+                repo: repo,
+                ref: pr.head.ref,
+              });
+            }
