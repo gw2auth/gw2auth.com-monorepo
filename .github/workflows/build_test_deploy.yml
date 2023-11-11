@@ -12,10 +12,6 @@ on:
       - 'feature/*'
 
 env:
-  NODE_VERSION_UI: '18'
-  NODE_VERSION_CDK: '18'
-  GO_VERSION_API: '^1.21'
-  GO_VERSION_OTEL_COLLECTOR: '^1.21'
   WORKSPACE_ARTIFACT_UI: 'gw2auth_ui_artifact'
   WORKSPACE_ARTIFACT_API: 'gw2auth_api_artifact'
   WORKSPACE_ARTIFACT_OTEL_COLLECTOR: 'otel_collector_artifact'
@@ -31,18 +27,13 @@ jobs:
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
-      - name: 'Setup node ${{ env.NODE_VERSION_UI }}'
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION_UI }}
-      - name: 'Install npm dependencies'
-        working-directory: 'gw2auth.com-ui'
-        run: 'npm install'
       - name: 'Build UI'
-        working-directory: 'gw2auth.com-ui'
-        run: 'npm run build'
+        id: build_ui
+        uses: './gw2auth.com-ui/.github/actions/build_and_test'
+        with:
+          working-directory: 'gw2auth.com-ui'
       - name: 'Prepare UI resources bundle'
-        working-directory: 'gw2auth.com-ui/dist'
+        working-directory: 'gw2auth.com-ui/${{ steps.build_ui.outputs.output_dir }}'
         run: 'zip -r ../${{ env.WORKSPACE_ARTIFACT_UI }}.zip .'
       - name: 'Store UI artifact'
         uses: actions/upload-artifact@v3
@@ -84,10 +75,11 @@ jobs:
         with:
           ssh-key: ${{ secrets.CDK_SSH_KEY }}
           submodules: true
-      - name: 'Setup go ${{ env.GO_VERSION_OTEL_COLLECTOR }}'
+      - name: 'Setup go'
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.GO_VERSION_OTEL_COLLECTOR }}
+          go-version-file: 'opentelemetry-lambda/collector/go.mod'
+          cache-dependency-path: 'opentelemetry-lambda/collector/go.sum'
       - name: 'Build otel collector'
         working-directory: 'opentelemetry-lambda/collector'
         env:
@@ -128,21 +120,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: './gw2auth.com-cdk/resources'
-      - name: 'Setup node ${{ env.NODE_VERSION_CDK }}'
-        uses: actions/setup-node@v3
+      - name: 'Build and synth cdk'
+        uses: './gw2auth.com-cdk/.github/actions/build_and_synth'
         with:
-          node-version: ${{ env.NODE_VERSION_CDK }}
-      - name: 'Install cdk'
-        run: 'npm install -g aws-cdk'
-      - name: 'Install npm dependencies'
-        working-directory: 'gw2auth.com-cdk'
-        run: 'npm install'
-      - name: 'Build cdk app'
-        working-directory: 'gw2auth.com-cdk'
-        run: 'npm run build'
-      - name: 'Synth cdk'
-        working-directory: 'gw2auth.com-cdk'
-        run: 'cdk synth --app bin/cdk.js'
+          working-directory: 'gw2auth.com-cdk'
       - name: 'Store cdk synth artifact'
         uses: actions/upload-artifact@v3
         with:
@@ -167,10 +148,10 @@ jobs:
         with:
           name: ${{ env.WORKSPACE_ARTIFACT_CDK }}
           path: .
-      - name: 'Setup node ${{ env.NODE_VERSION_CDK }}'
-        uses: actions/setup-node@v3
+      - name: 'Setup node'
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION_CDK }}
+          node-version: '20'
       - name: 'Install cdk'
         run: 'npm install -g aws-cdk'
       - name: 'AWS Credentials'
