@@ -156,36 +156,13 @@ jobs:
         with:
           name: ${{ env.WORKSPACE_ARTIFACT_CDK }}
           path: .
-      - name: 'Deploy feature'
-        if: startsWith(github.ref, 'refs/heads/feature/')
+      - name: 'Deploy'
         uses: './gw2auth.com-cdk/.github/actions/deploy'
         with:
           role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
           aws-region: ${{ secrets.AWS_CDK_REGION }}
           cdk-out-path: './cdk.out'
-          stack: 'GW2Auth-Feature'
-          grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
-          secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
-          secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
-      - name: 'Deploy beta'
-        if: github.ref == 'refs/heads/beta'
-        uses: './gw2auth.com-cdk/.github/actions/deploy'
-        with:
-          role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
-          aws-region: ${{ secrets.AWS_CDK_REGION }}
-          cdk-out-path: './cdk.out'
-          stack: 'GW2Auth-Beta'
-          grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
-          secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
-          secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
-      - name: 'Deploy prod'
-        if: github.ref == 'refs/heads/main'
-        uses: './gw2auth.com-cdk/.github/actions/deploy'
-        with:
-          role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
-          aws-region: ${{ secrets.AWS_CDK_REGION }}
-          cdk-out-path: './cdk.out'
-          stack: 'GW2Auth-Prod'
+          stack: ${{ vars.CDK_STACK }}
           grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
           secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
           secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
