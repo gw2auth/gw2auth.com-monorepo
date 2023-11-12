@@ -10,6 +10,9 @@ on:
       - 'main'
       - 'beta'
       - 'feature/*'
+    paths-ignore:
+      - '.github/**'
+      - 'featuresets.js'
 
 env:
   WORKSPACE_ARTIFACT_UI: 'gw2auth_ui_artifact'
