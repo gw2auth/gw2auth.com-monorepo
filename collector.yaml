@@ -13,6 +13,9 @@ receivers:
     protocols:
       grpc:
 
+processors:
+  decouple:
+
 exporters:
   logging:
     verbosity: detailed
@@ -28,10 +31,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
+      processors: [decouple]
       exporters: [logging, otlphttp]
     metrics:
       receivers: [otlp]
+      processors: [decouple]
       exporters: [logging, otlphttp]
     logs:
       receivers: [otlp]
+      processors: [decouple]
       exporters: [logging, otlphttp]
