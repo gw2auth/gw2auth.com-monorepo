@@ -40,7 +40,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: 'Featureset match'
         id: 'featureset_match'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         env:
           SUBMODULE: ${{ inputs.submodule }}
           SUBMODULE_REF: ${{ inputs.submodule_ref }}
@@ -136,7 +136,7 @@ jobs:
       pull-requests: write
     steps:
       - name: 'Create PR'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
