@@ -37,6 +37,7 @@ jobs:
         uses: './gw2auth.com-ui/.github/actions/build_and_test'
         with:
           working-directory: 'gw2auth.com-ui'
+          base-url: ${{ (github.ref == 'refs/heads/beta' && 'https://beta.gw2auth.com') || (github.ref == 'refs/heads/main' && 'https://gw2auth.com') || 'https://feature.gw2auth.com' }}
       - name: 'Prepare UI resources bundle'
         working-directory: 'gw2auth.com-ui/${{ steps.build_ui.outputs.output_dir }}'
         run: 'zip -r ../${{ env.WORKSPACE_ARTIFACT_UI }}.zip .'
