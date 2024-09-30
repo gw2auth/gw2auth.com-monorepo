@@ -120,13 +120,14 @@ jobs:
           GOOS: 'linux'
           GOARCH: 'amd64' # keep this in sync with the arch configured in CDK!
           CGO_ENABLED: '0'
-        run: 'go build -o otel_collector'
+          BUILDTAGS: 'lambdacomponents.custom,lambdacomponents.receiver.otlp,lambdacomponents.processor.coldstart,lambdacomponents.exporter.otlphttp,lambdacomponents.exporter.logging'
+        run: 'make build'
       - name: 'Prepare lambda extension bundle'
         working-directory: 'opentelemetry-lambda/collector'
         run: |
           mkdir lambda_layer_bundle
           mkdir lambda_layer_bundle/extensions
-          cp otel_collector lambda_layer_bundle/extensions/layer
+          cp build/extensions/collector lambda_layer_bundle/extensions/layer
           cp ../../collector.yaml lambda_layer_bundle/
           chmod +x lambda_layer_bundle/extensions/layer
           (cd lambda_layer_bundle && zip -r ../${{ env.WORKSPACE_ARTIFACT_OTEL_COLLECTOR }}.zip .)
