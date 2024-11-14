@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - 'gw2auth.com-api'
+          - 'gw2auth.com-canary'
           - 'gw2auth.com-cdk'
           - 'gw2auth.com-ui'
           - 'opentelemetry-lambda'

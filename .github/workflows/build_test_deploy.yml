@@ -19,6 +19,7 @@ env:
   WORKSPACE_ARTIFACT_UI: 'gw2auth_ui_artifact'
   WORKSPACE_ARTIFACT_API: 'gw2auth_api_artifact'
   WORKSPACE_ARTIFACT_OTEL_COLLECTOR: 'otel_collector_artifact'
+  WORKSPACE_ARTIFACT_CANARY: 'gw2auth_canary_artifact'
   WORKSPACE_ARTIFACT_CDK: 'gw2auth_cdk_artifact'
 
 jobs:
@@ -109,6 +110,29 @@ jobs:
           path: 'opentelemetry-lambda/collector/${{ env.WORKSPACE_ARTIFACT_OTEL_COLLECTOR }}.zip'
           retention-days: 1
 
+  build_canary:
+    name: 'Build Canary'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.CDK_SSH_KEY }}
+          submodules: true
+      - name: 'Build Canary'
+        uses: './gw2auth.com-canary/.github/actions/build_and_test'
+        with:
+          working-directory: 'gw2auth.com-canary'
+          output: 'bootstrap'
+      - name: 'Prepare lambda bundle'
+        working-directory: 'gw2auth.com-canary'
+        run: '(chmod +x bootstrap && zip -q ${{ env.WORKSPACE_ARTIFACT_CANARY }}.zip bootstrap && rm bootstrap)'
+      - name: 'Store API artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.WORKSPACE_ARTIFACT_CANARY }}
+          path: 'gw2auth.com-canary/${{ env.WORKSPACE_ARTIFACT_CANARY }}.zip'
+
   build_and_synth_cdk:
     name: 'Build and synth cdk'
     runs-on: ubuntu-latest
@@ -116,6 +140,7 @@ jobs:
       - build_ui
       - build_api
       - build_otel_collector
+      - build_canary
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v4
@@ -169,6 +194,36 @@ jobs:
           grafana-cloud-auth: ${{ secrets.GRAFANA_CLOUD_AUTH }}
           secrets-bucket: ${{ secrets.SECRETS_BUCKET }}
           secrets-key-prefix: ${{ secrets.SECRETS_KEY_PREFIX }}
+
+  deploy_canary:
+    name: 'Deploy Canary'
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: 'canary'
+    needs:
+      - build_and_synth_cdk
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.CDK_SSH_KEY }}
+          submodules: true
+      - name: 'Download cdk synth artifact'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WORKSPACE_ARTIFACT_CDK }}
+          path: .
+      - name: 'Deploy'
+        uses: './gw2auth.com-cdk/.github/actions/deploy'
+        with:
+          role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
+          aws-region: ${{ secrets.AWS_CDK_REGION }}
+          cdk-out-path: './cdk.out'
+          stack: ${{ vars.CDK_STACK }}
+          grafana-cloud-auth: '__UNUSED__'
+          secrets-bucket: '__UNUSED__'
+          secrets-key-prefix: '__UNUSED__'
 
   create_pull_request:
     name: 'Create PR'

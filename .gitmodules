@@ -10,3 +10,6 @@
 [submodule "opentelemetry-lambda"]
 	path = opentelemetry-lambda
 	url = git@github.com:open-telemetry/opentelemetry-lambda.git
+[submodule "gw2auth.com-canary"]
+	path = gw2auth.com-canary
+	url = git@github.com:gw2auth/gw2auth.com-canary.git
