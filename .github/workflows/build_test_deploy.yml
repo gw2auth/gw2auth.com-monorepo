@@ -215,15 +215,12 @@ jobs:
           name: ${{ env.WORKSPACE_ARTIFACT_CDK }}
           path: .
       - name: 'Deploy'
-        uses: './gw2auth.com-cdk/.github/actions/deploy'
+        uses: './gw2auth.com-cdk/.github/actions/deploy_canary'
         with:
           role-to-assume: ${{ secrets.AWS_CDK_ROLE }}
           aws-region: ${{ secrets.AWS_CDK_REGION }}
           cdk-out-path: './cdk.out'
           stack: ${{ vars.CDK_STACK }}
-          grafana-cloud-auth: '__UNUSED__'
-          secrets-bucket: '__UNUSED__'
-          secrets-key-prefix: '__UNUSED__'
 
   create_pull_request:
     name: 'Create PR'
