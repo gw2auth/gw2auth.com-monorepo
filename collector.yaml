@@ -17,7 +17,7 @@ processors:
   decouple:
 
 exporters:
-  logging:
+  debug:
     verbosity: detailed
   otlphttp:
     endpoint: "https://otlp-gateway-prod-eu-west-0.grafana.net/otlp"
@@ -32,12 +32,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [decouple]
-      exporters: [logging, otlphttp]
+      exporters: [debug, otlphttp]
     metrics:
       receivers: [otlp]
       processors: [decouple]
-      exporters: [logging, otlphttp]
+      exporters: [debug, otlphttp]
     logs:
       receivers: [otlp]
       processors: [decouple]
-      exporters: [logging, otlphttp]
+      exporters: [debug, otlphttp]
