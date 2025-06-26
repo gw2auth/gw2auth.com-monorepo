@@ -92,7 +92,7 @@ jobs:
           GOOS: 'linux'
           GOARCH: 'amd64' # keep this in sync with the arch configured in CDK!
           CGO_ENABLED: '0'
-          BUILDTAGS: 'lambdacomponents.custom,lambdacomponents.receiver.otlp,lambdacomponents.processor.decouple,lambdacomponents.exporter.otlphttp,lambdacomponents.exporter.logging'
+          BUILDTAGS: 'lambdacomponents.custom,lambdacomponents.receiver.otlp,lambdacomponents.processor.decouple,lambdacomponents.exporter.otlphttp,lambdacomponents.exporter.debug'
         run: 'make build'
       - name: 'Prepare lambda extension bundle'
         working-directory: 'opentelemetry-lambda/collector'
