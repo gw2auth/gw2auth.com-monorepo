@@ -18,6 +18,7 @@ on:
 env:
   WORKSPACE_ARTIFACT_UI: 'gw2auth_ui_artifact'
   WORKSPACE_ARTIFACT_API: 'gw2auth_api_artifact'
+  WORKSPACE_ARTIFACT_BACKGROUND_JOBS: 'gw2auth_background_jobs_artifact'
   WORKSPACE_ARTIFACT_OTEL_COLLECTOR: 'otel_collector_artifact'
   WORKSPACE_ARTIFACT_CANARY: 'gw2auth_canary_artifact'
   WORKSPACE_ARTIFACT_CDK: 'gw2auth_cdk_artifact'
@@ -70,6 +71,30 @@ jobs:
         with:
           name: ${{ env.WORKSPACE_ARTIFACT_API }}
           path: 'gw2auth.com-api/${{ env.WORKSPACE_ARTIFACT_API }}.zip'
+          retention-days: 1
+
+  build_background_jobs:
+    name: 'Build Background Jobs'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.CDK_SSH_KEY }}
+          submodules: true
+      - name: 'Build Background Jobs'
+        uses: './gw2auth.com-background-jobs/.github/actions/build_and_test'
+        with:
+          working-directory: 'gw2auth.com-background-jobs'
+          output: 'bootstrap'
+      - name: 'Prepare lambda bundle'
+        working-directory: 'gw2auth.com-background-jobs'
+        run: '(chmod +x bootstrap && zip -q ${{ env.WORKSPACE_ARTIFACT_BACKGROUND_JOBS }}.zip bootstrap && rm bootstrap)'
+      - name: 'Store Background Jobs artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.WORKSPACE_ARTIFACT_BACKGROUND_JOBS }}
+          path: 'gw2auth.com-background-jobs/${{ env.WORKSPACE_ARTIFACT_BACKGROUND_JOBS }}.zip'
           retention-days: 1
 
   build_otel_collector:
@@ -139,6 +164,7 @@ jobs:
     needs:
       - build_ui
       - build_api
+      - build_background_jobs
       - build_otel_collector
       - build_canary
     steps:
