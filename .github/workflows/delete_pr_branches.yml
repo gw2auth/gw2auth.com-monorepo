@@ -15,7 +15,7 @@ jobs:
       contents: write
     steps:
       - name: 'Delete PR head branch'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           HEAD_REF: ${{ github.head_ref }}
         with:
@@ -32,7 +32,7 @@ jobs:
             }
       - name: 'Delete PR other head branches'
         if: ${{ endsWith(github.head_ref, '/all') && github.event.pull_request.merged }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           BASE_REF: ${{ github.base_ref }}
         with:
